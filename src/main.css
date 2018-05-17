@@ -1,0 +1,19 @@
+.app-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 100vh;
+}
+
+.app-container > * {
+  position: relative;
+  padding: 3rem;
+}
+
+.container-fluid {
+  width: 90vw;
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
+}
