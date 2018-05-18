@@ -11,6 +11,6 @@ getTickers : Int -> Http.Request (List ( String, Currency ))
 getTickers limit =
     let
         decoder =
-            Decode.field "data" (Decode.keyValuePairs Data.Currency.decode)
+            Decode.field "data" (Decode.keyValuePairs Data.Currency.decoder)
     in
         Http.get ("https://api.coinmarketcap.com/v2/ticker/?limit=" ++ (toString limit)) decoder
