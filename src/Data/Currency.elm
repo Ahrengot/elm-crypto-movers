@@ -43,6 +43,6 @@ quoteDecoder =
         (Decode.at [ "USD", "price" ] Decode.float)
         (Decode.at [ "USD", "volume_24h" ] Decode.float)
         (Decode.at [ "USD", "market_cap" ] Decode.float)
-        (Decode.at [ "USD", "percent_change_1h" ] Decode.float)
+        (Decode.at [ "USD", "percent_change_1h" ] (Decode.oneOf [ Decode.null 0, Decode.float ]))
         (Decode.at [ "USD", "percent_change_24h" ] (Decode.oneOf [ Decode.null 0, Decode.float ]))
         (Decode.at [ "USD", "percent_change_7d" ] (Decode.oneOf [ Decode.null 0, Decode.float ]))
