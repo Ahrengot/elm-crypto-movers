@@ -46,7 +46,7 @@ init =
       , sorting = Hourly
       , sortOrder = Descending
       }
-    , Cmd.batch (initialRequests 10)
+    , Cmd.batch (initialRequests 16)
     )
 
 
