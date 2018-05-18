@@ -8,11 +8,11 @@
 
 .app-container > * {
   position: relative;
-  padding: 3rem;
+  padding: 3vmin;
 }
 
 .container-fluid {
-  width: 90vw;
+  width: 96vw;
   max-width: 64rem;
   margin-left: auto;
   margin-right: auto;
@@ -23,4 +23,32 @@ table .currency-name img {
   height: auto;
   margin-right: 0.65em;
   vertical-align: middle;
+}
+
+html {
+  font-size: 12px;
+}
+
+@media (min-width: 650px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 860px) {
+  .table-responsive {
+    display: table;
+  }
+}
+
+@media (min-width: 1150px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1400px) {
+  html {
+    font-size: 19px;
+  }
 }
