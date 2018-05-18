@@ -9,6 +9,7 @@ import Data.Request exposing (RequestState(..))
 import Request.Ticker
 import Http
 import HttpUtils
+import Round
 
 
 ---- MODEL ----
@@ -18,6 +19,7 @@ type CurrencySort
     = Hourly
     | Daily
     | Weekly
+    | Price
 
 
 type SortOrder
@@ -108,6 +110,10 @@ update msg model =
             ( { model | sortOrder = ordering }, Cmd.none )
 
 
+
+-- Utilities --
+
+
 sortCurrencies : CurrencySort -> SortOrder -> List Currency -> List Currency
 sortCurrencies sorting order currencies =
     let
@@ -122,6 +128,9 @@ sortCurrencies sorting order currencies =
                 Weekly ->
                     .percentChange7d
 
+                Price ->
+                    .price
+
         sortedCurrencies =
             List.sortBy (.quotes >> sortKey) currencies
     in
@@ -131,6 +140,25 @@ sortCurrencies sorting order currencies =
 
             Descending ->
                 List.reverse sortedCurrencies
+
+
+{-| Rounds dynamically based on value. E.g. 1000 won't have decimals
+whereas 0.0054 will have 4 decimals
+-}
+dynamicRound : Float -> String
+dynamicRound val =
+    let
+        decimals =
+            if val > 100 then
+                0
+            else if val > 1 then
+                2
+            else if val > 0.5 then
+                3
+            else
+                4
+    in
+        Round.round decimals val
 
 
 
@@ -170,7 +198,7 @@ viewTickersTable currencyList =
         table [ class "table table-striped" ]
             [ thead []
                 [ th [] [ text "Name" ]
-                , th [] [ text "price (USD)" ]
+                , th [ sortCursorStyles, onClick (Sort Price) ] [ text "price (USD)" ]
                 , th [ sortCursorStyles, onClick (Sort Hourly) ] [ text "1h change" ]
                 , th [ sortCursorStyles, onClick (Sort Daily) ] [ text "24h change" ]
                 , th [ sortCursorStyles, onClick (Sort Weekly) ] [ text "7d change" ]
@@ -205,7 +233,7 @@ viewTickerRow currency =
                     [ text currency.name
                     ]
                 ]
-            , td [] [ text <| "$" ++ toString currency.quotes.price ]
+            , td [] [ text <| "$" ++ (dynamicRound currency.quotes.price) ]
             , td (valueAttrs currency.quotes.percentChange1h) [ text <| (toString currency.quotes.percentChange1h) ++ "%" ]
             , td (valueAttrs currency.quotes.percentChange24h) [ text <| (toString currency.quotes.percentChange24h) ++ "%" ]
             , td (valueAttrs currency.quotes.percentChange7d) [ text <| (toString currency.quotes.percentChange7d) ++ "%" ]
