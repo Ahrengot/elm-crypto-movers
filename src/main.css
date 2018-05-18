@@ -17,3 +17,10 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+table .currency-name img {
+  width: 24px;
+  height: auto;
+  margin-right: 0.65em;
+  vertical-align: middle;
+}
