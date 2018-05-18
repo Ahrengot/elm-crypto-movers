@@ -3,6 +3,7 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed
+import Html.Lazy exposing (lazy)
 import Html.Events exposing (onClick)
 import Data.Currency exposing (Currency)
 import Data.Request exposing (RequestState(..))
@@ -217,10 +218,7 @@ view model =
                             ]
 
                     Errored errMsg ->
-                        div [ class "alert alert-danger" ]
-                            [ h4 [ class "alert-heading" ] [ text "Error loading tickers" ]
-                            , div [] [ text errMsg ]
-                            ]
+                        text ""
 
                     _ ->
                         div [ class "text-center" ]
@@ -228,33 +226,61 @@ view model =
                             ]
               else
                 div []
-                    [ h4 [ class "display-5 text-right text-muted mb-3" ] [ text <| "Found " ++ (toString (List.length model.results)) ++ " coins" ]
-                    , viewTickersTable (sortCurrencies model.sorting model.sortOrder model.results)
+                    [ h4 [ class "display-5 text-right text-muted mb-3" ] [ text <| "Found " ++ (format { usLocale | decimals = 0 } (toFloat (List.length model.results))) ++ " coins" ]
+                    , viewTickersTable (sortCurrencies model.sorting model.sortOrder model.results) model.sorting model.sortOrder
                     ]
             ]
         ]
 
 
-viewTickersTable : List Currency -> Html Msg
-viewTickersTable currencyList =
+viewTickersTable : List Currency -> CurrencySort -> SortOrder -> Html Msg
+viewTickersTable currencyList currentSorting currentOrder =
     let
         sortCursorStyles =
             style [ ( "cursor", "ns-resize" ) ]
+
+        sortableHeaders =
+            [ { label = "1h change", sorter = Hourly }
+            , { label = "24h change", sorter = Daily }
+            , { label = "7d change", sorter = Weekly }
+            ]
+                |> List.map
+                    (\header ->
+                        th [ sortCursorStyles, onClick (Sort header.sorter) ]
+                            [ if header.sorter == currentSorting then
+                                case currentOrder of
+                                    Ascending ->
+                                        text (header.label ++ " 📉")
+
+                                    Descending ->
+                                        text (header.label ++ " 📈")
+                              else
+                                text header.label
+                            ]
+                    )
     in
         table [ class "table table-striped" ]
             [ thead []
-                [ th [] [ text "Name" ]
-                , th [ sortCursorStyles, onClick (Sort Price) ] [ text "price (USD)" ]
-                , th [ sortCursorStyles, onClick (Sort Hourly) ] [ text "1h change" ]
-                , th [ sortCursorStyles, onClick (Sort Daily) ] [ text "24h change" ]
-                , th [ sortCursorStyles, onClick (Sort Weekly) ] [ text "7d change" ]
-                , th [ sortCursorStyles, onClick (Sort Volume) ] [ text "24h volume" ]
-                ]
-            , Html.Keyed.node "tbody" [] (List.map viewTickerRow currencyList)
+                ([ th [] [ text "Name" ]
+                 , th [ sortCursorStyles, onClick (Sort Price) ] [ text "price (USD)" ]
+                 ]
+                    ++ sortableHeaders
+                    ++ [ th [ sortCursorStyles, onClick (Sort Volume) ] [ text "24h volume" ]
+                       ]
+                )
+            , (currencyList
+                |> List.map
+                    (\currency ->
+                        ( toString currency.id
+                        , lazy viewTickerRow currency
+                        )
+                    )
+                |> Html.Keyed.node "tbody" []
+              )
             ]
 
 
-viewTickerRow : Currency -> ( String, Html Msg )
+viewTickerRow : Currency -> Html Msg
 viewTickerRow currency =
     let
         colorIndicator : Float -> String
@@ -273,8 +299,7 @@ viewTickerRow currency =
         iconSrc =
             "https://s2.coinmarketcap.com/static/img/coins/32x32/" ++ (toString currency.id) ++ ".png"
     in
-        ( (toString currency.id)
-        , tr []
+        tr []
             [ td [ class "currency-name" ]
                 [ a
                     [ href ("https://coinmarketcap.com/currencies/" ++ currency.websiteSlug)
@@ -290,4 +315,3 @@ viewTickerRow currency =
             , td (valueAttrs currency.quotes.percentChange7d) [ text <| (toString currency.quotes.percentChange7d) ++ "%" ]
             , td [] [ text <| "$" ++ (format { usLocale | decimals = 0 } currency.quotes.volume24h) ]
             ]
-        )
