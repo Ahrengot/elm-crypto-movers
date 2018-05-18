@@ -218,15 +218,23 @@ view model =
                             ]
 
                     Errored errMsg ->
+                        -- Handled above...
                         text ""
 
-                    _ ->
+                    FinishedLoading _ ->
                         div [ class "text-center" ]
-                            [ text "Huh? Not sure how we ended up in this state... But I need a lot of your cheapest, strongest alcohol."
+                            [ text "Finished loading, got no errors, but also got no results... This is weird."
+                            ]
+
+                    Idle ->
+                        div [ class "text-center" ]
+                            [ text "Huh? Not sure how we could end up in this state... But I need a lot of your cheapest, strongest alcohol."
                             ]
               else
                 div []
-                    [ h4 [ class "display-5 text-right text-muted mb-3" ] [ text <| "Found " ++ (format { usLocale | decimals = 0 } (toFloat (List.length model.results))) ++ " coins" ]
+                    [ h4 [ class "display-5 text-right text-muted mb-3" ]
+                        [ text <| "Loaded " ++ (format { usLocale | decimals = 0 } (toFloat (List.length model.results))) ++ " coins"
+                        ]
                     , viewTickersTable (sortCurrencies model.sorting model.sortOrder model.results) model.sorting model.sortOrder
                     ]
             ]
