@@ -45,14 +45,26 @@ init =
       , sorting = Hourly
       , sortOrder = Descending
       }
-    , Cmd.batch
-        [ (Http.send TickerListResponse <| Request.Ticker.getTickers 0 100)
-        , (Http.send TickerListResponse <| Request.Ticker.getTickers 101 100)
-        , (Http.send TickerListResponse <| Request.Ticker.getTickers 201 100)
-        , (Http.send TickerListResponse <| Request.Ticker.getTickers 301 100)
-        , (Http.send TickerListResponse <| Request.Ticker.getTickers 401 100)
-        ]
+    , Cmd.batch (initialRequests 10)
     )
+
+
+{-| Batches n number of ticker requests and returns a single command for them all
+-}
+initialRequests : Int -> List (Cmd Msg)
+initialRequests numPages =
+    List.range 0 (numPages - 1)
+        |> List.map
+            (\page ->
+                let
+                    startAt =
+                        if page == 0 then
+                            0
+                        else
+                            (page * 100) + 1
+                in
+                    (Http.send TickerListResponse (Request.Ticker.getTickers startAt 100))
+            )
 
 
 
