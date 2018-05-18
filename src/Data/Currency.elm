@@ -33,16 +33,21 @@ decoder =
         |> required "name" Decode.string
         |> required "rank" Decode.int
         |> required "website_slug" Decode.string
-        |> required "circulating_supply" Decode.float
+        |> required "circulating_supply" nullableFloatDecoder
         |> DecodePipeline.custom (Decode.field "quotes" quoteDecoder)
 
 
 quoteDecoder : Decoder CurrencyQuote
 quoteDecoder =
     Decode.map6 CurrencyQuote
-        (Decode.at [ "USD", "price" ] Decode.float)
-        (Decode.at [ "USD", "volume_24h" ] Decode.float)
-        (Decode.at [ "USD", "market_cap" ] Decode.float)
-        (Decode.at [ "USD", "percent_change_1h" ] (Decode.oneOf [ Decode.null 0, Decode.float ]))
-        (Decode.at [ "USD", "percent_change_24h" ] (Decode.oneOf [ Decode.null 0, Decode.float ]))
-        (Decode.at [ "USD", "percent_change_7d" ] (Decode.oneOf [ Decode.null 0, Decode.float ]))
+        (Decode.at [ "USD", "price" ] nullableFloatDecoder)
+        (Decode.at [ "USD", "volume_24h" ] nullableFloatDecoder)
+        (Decode.at [ "USD", "market_cap" ] nullableFloatDecoder)
+        (Decode.at [ "USD", "percent_change_1h" ] nullableFloatDecoder)
+        (Decode.at [ "USD", "percent_change_24h" ] nullableFloatDecoder)
+        (Decode.at [ "USD", "percent_change_7d" ] nullableFloatDecoder)
+
+
+nullableFloatDecoder : Decoder Float
+nullableFloatDecoder =
+    Decode.oneOf [ Decode.null 0, Decode.float ]
