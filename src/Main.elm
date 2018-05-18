@@ -244,38 +244,34 @@ view model =
 viewTickersTable : List Currency -> CurrencySort -> SortOrder -> Html Msg
 viewTickersTable currencyList currentSorting currentOrder =
     let
-        sortCursorStyles =
-            style [ ( "cursor", "ns-resize" ) ]
-
         sortableHeaders =
-            [ { label = "1h change", sorter = Hourly }
-            , { label = "24h change", sorter = Daily }
-            , { label = "7d change", sorter = Weekly }
+            [ ( "price", Price )
+            , ( "1h change", Hourly )
+            , ( "24h change", Daily )
+            , ( "7d change", Weekly )
+            , ( "24h volume", Volume )
             ]
                 |> List.map
-                    (\header ->
-                        th [ sortCursorStyles, onClick (Sort header.sorter) ]
-                            [ if header.sorter == currentSorting then
+                    (\( label, sorter ) ->
+                        th
+                            [ style [ ( "cursor", "ns-resize" ) ]
+                            , onClick (Sort sorter)
+                            ]
+                            [ if sorter == currentSorting then
                                 case currentOrder of
                                     Ascending ->
-                                        text (header.label ++ " 📉")
+                                        text (label ++ " 📉")
 
                                     Descending ->
-                                        text (header.label ++ " 📈")
+                                        text (label ++ " 📈")
                               else
-                                text header.label
+                                text label
                             ]
                     )
     in
-        table [ class "table table-striped" ]
+        table [ class "table table-striped table-responsive" ]
             [ thead []
-                ([ th [] [ text "Name" ]
-                 , th [ sortCursorStyles, onClick (Sort Price) ] [ text "price (USD)" ]
-                 ]
-                    ++ sortableHeaders
-                    ++ [ th [ sortCursorStyles, onClick (Sort Volume) ] [ text "24h volume" ]
-                       ]
-                )
+                (th [] [ text "Name" ] :: sortableHeaders)
             , (currencyList
                 |> List.map
                     (\currency ->
@@ -300,12 +296,15 @@ viewTickerRow currency =
             else
                 "#f42f32"
 
-        valueAttrs : Float -> List (Html.Attribute Msg)
-        valueAttrs val =
-            [ style [ ( "color", colorIndicator val ) ] ]
+        valueStyles : Float -> Html.Attribute Msg
+        valueStyles val =
+            style [ ( "color", colorIndicator val ) ]
 
         iconSrc =
             "https://s2.coinmarketcap.com/static/img/coins/32x32/" ++ (toString currency.id) ++ ".png"
+
+        { price, percentChange1h, percentChange24h, percentChange7d, volume24h } =
+            currency.quotes
     in
         tr []
             [ td [ class "currency-name" ]
@@ -317,9 +316,9 @@ viewTickerRow currency =
                     , text currency.name
                     ]
                 ]
-            , td [] [ text <| "$" ++ (dynamicRound currency.quotes.price) ]
-            , td (valueAttrs currency.quotes.percentChange1h) [ text <| (toString currency.quotes.percentChange1h) ++ "%" ]
-            , td (valueAttrs currency.quotes.percentChange24h) [ text <| (toString currency.quotes.percentChange24h) ++ "%" ]
-            , td (valueAttrs currency.quotes.percentChange7d) [ text <| (toString currency.quotes.percentChange7d) ++ "%" ]
-            , td [] [ text <| "$" ++ (format { usLocale | decimals = 0 } currency.quotes.volume24h) ]
+            , td [] [ text <| "$" ++ (dynamicRound price) ]
+            , td [ (valueStyles percentChange1h) ] [ text <| (toString percentChange1h) ++ "%" ]
+            , td [ (valueStyles percentChange24h) ] [ text <| (toString percentChange24h) ++ "%" ]
+            , td [ (valueStyles percentChange7d) ] [ text <| (toString percentChange7d) ++ "%" ]
+            , td [] [ text <| "$" ++ (format { usLocale | decimals = 0 } volume24h) ]
             ]
